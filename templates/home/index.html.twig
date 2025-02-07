@@ -1,0 +1,172 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}EduPro - Plateforme de formation en ligne{% endblock %}
+
+{% block body %}
+    <!-- Hero Section avec fond d'image -->
+    <div class="relative bg-gray-900 h-[600px] overflow-hidden">
+        <!-- Image de fond avec overlay -->
+        <div class="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f" alt="Hero background" class="w-full h-full object-cover opacity-30">
+        </div>
+        
+        <!-- Contenu Hero -->
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+            <div class="max-w-3xl">
+                <h1 class="text-5xl font-bold text-white mb-6 leading-tight">
+                    Apprenez de n'importe où, <br>
+                    <span class="text-indigo-400">à votre rythme</span>
+                </h1>
+                <p class="text-xl text-gray-300 mb-8">
+                    Rejoignez notre communauté d'apprenants et développez les compétences qui feront la différence.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="bg-indigo-600 text-white px-8 py-4 rounded-lg font-medium hover:bg-indigo-700 transition duration-150">
+                        Commencer gratuitement
+                    </a>
+                    <a href="#" class="bg-white text-gray-900 px-8 py-4 rounded-lg font-medium hover:bg-gray-100 transition duration-150">
+                        Explorer les cours
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Avantages -->
+    <div class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-laptop-code text-2xl text-indigo-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4">Apprentissage flexible</h3>
+                    <p class="text-gray-600">Apprenez à votre rythme, où que vous soyez, sur tous vos appareils.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-certificate text-2xl text-indigo-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4">Certificats reconnus</h3>
+                    <p class="text-gray-600">Obtenez des certificats validés par l'industrie pour booster votre carrière.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-users text-2xl text-indigo-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4">Experts du domaine</h3>
+                    <p class="text-gray-600">Apprenez avec des professionnels reconnus dans leur domaine.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Cours Tendances -->
+    <div class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Cours tendances</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Découvrez nos cours les plus populaires, soigneusement sélectionnés pour vous aider à atteindre vos objectifs.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {% for course in trendingCourses %}
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 flex flex-col h-[500px]">
+                        <div class="h-48 overflow-hidden">
+                            {% if course.thumbnail %}
+                                <img src="{{ vich_uploader_asset(course, 'thumbnailFile') }}" 
+                                     alt="{{ course.title }}" 
+                                     class="w-full h-full object-cover">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085" 
+                                     alt="Course default" 
+                                     class="w-full h-full object-cover">
+                            {% endif %}
+                        </div>
+                        
+                        <div class="p-6 flex flex-col flex-grow">
+                            <div class="flex items-center mb-4 flex-wrap">
+                                {% if course.categories is not empty %}
+                                    {% for category in course.categories %}
+                                        <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full mr-2 mb-2">
+                                            {{ category.name }}
+                                        </span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold mb-2 line-clamp-2">{{ course.title }}</h3>
+                            <p class="text-gray-600 mb-4 text-sm line-clamp-3">{{ course.description }}</p>
+                            
+                            <div class="mt-auto flex items-center justify-between">
+                                <div class="flex items-center">
+                                    {% if course.instructor %}
+                                        {% if course.instructor.avatar %}
+                                            <img src="{{ vich_uploader_asset(course.instructor, 'avatarFile') }}" 
+                                                 alt="{{ course.instructor.fullName }}" 
+                                                 class="w-8 h-8 rounded-full object-cover">
+                                        {% else %}
+                                            <img src="https://ui-avatars.com/api/?name={{ course.instructor.fullName|url_encode }}" 
+                                                 alt="{{ course.instructor.fullName }}" 
+                                                 class="w-8 h-8 rounded-full">
+                                        {% endif %}
+                                        <span class="ml-2 text-sm text-gray-600">{{ course.instructor.fullName }}</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-xl font-bold text-gray-900">{{ course.price|format_currency('EUR') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-span-3 text-center py-12">
+                        <p class="text-gray-600">Aucun cours disponible pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center mt-12">
+                <a href="{{ path('app_courses') }}" class="inline-flex items-center text-indigo-600 font-medium hover:text-indigo-700">
+                    Voir tous les cours
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Témoignages -->
+    <div class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold mb-4">Ce que disent nos étudiants</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Des milliers d'étudiants ont déjà transformé leur vie grâce à nos formations.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {% for i in 1..2 %}
+                    <div class="bg-gray-50 rounded-2xl p-8 relative">
+                        <div class="absolute -top-4 left-8 text-5xl text-indigo-200">"</div>
+                        <p class="text-gray-600 mb-6 relative z-10">Les cours sont exceptionnels et les instructeurs sont passionnés. J'ai pu acquérir de nouvelles compétences qui m'ont permis d'évoluer professionnellement.</p>
+                        <div class="flex items-center">
+                            <img src="https://ui-avatars.com/api/?name=Sarah+Johnson" alt="Student" class="w-12 h-12 rounded-full">
+                            <div class="ml-4">
+                                <div class="font-semibold">Sarah Johnson</div>
+                                <div class="text-gray-600 text-sm">Développeuse Full Stack</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="bg-indigo-600 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Prêt à commencer votre voyage d'apprentissage ?</h2>
+            <p class="text-indigo-100 mb-8 max-w-2xl mx-auto">Rejoignez des milliers d'apprenants qui transforment leur vie grâce à nos formations en ligne.</p>
+            <a href="#" class="inline-block bg-white text-indigo-600 px-8 py-4 rounded-lg font-medium hover:bg-gray-100 transition duration-150">
+                Commencer maintenant
+            </a>
+        </div>
+    </div>
+{% endblock %}
