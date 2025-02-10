@@ -17,21 +17,21 @@ class Chapter
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $description = null;
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $content = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $duration = null;
+    #[ORM\Column]
+    private ?int $position = null;
 
     #[ORM\ManyToOne(inversedBy: 'chapters')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
-    #[ORM\Column]
-    private ?int $position = null;
-
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $videoUrl = null;
+
+    #[ORM\OneToOne(mappedBy: 'chapter', targetEntity: Quiz::class, cascade: ['persist', 'remove'])]
+    private ?Quiz $quiz = null;
 
     public function getId(): ?int
     {
@@ -43,42 +43,20 @@ class Chapter
         return $this->title;
     }
 
-    public function setTitle(string $title): static
+    public function setTitle(string $title): self
     {
         $this->title = $title;
         return $this;
     }
 
-    public function getDescription(): ?string
+    public function getContent(): ?string
     {
-        return $this->description;
+        return $this->content;
     }
 
-    public function setDescription(?string $description): static
+    public function setContent(?string $content): self
     {
-        $this->description = $description;
-        return $this;
-    }
-
-    public function getDuration(): ?string
-    {
-        return $this->duration;
-    }
-
-    public function setDuration(?string $duration): static
-    {
-        $this->duration = $duration;
-        return $this;
-    }
-
-    public function getCourse(): ?Course
-    {
-        return $this->course;
-    }
-
-    public function setCourse(?Course $course): static
-    {
-        $this->course = $course;
+        $this->content = $content;
         return $this;
     }
 
@@ -87,26 +65,20 @@ class Chapter
         return $this->position;
     }
 
-    public function setPosition(int $position = 0): static
+    public function setPosition(int $position): self
     {
-        if ($position === 0) {
-            // Si position est 0, on calcule la prochaine position disponible
-            if ($this->course) {
-                $lastPosition = 0;
-                foreach ($this->course->getChapters() as $chapter) {
-                    if ($chapter->getPosition() > $lastPosition) {
-                        $lastPosition = $chapter->getPosition();
-                    }
-                }
-                $this->position = $lastPosition + 1;
-            } else {
-                // Si pas de cours associé, on commence à 1
-                $this->position = 1;
-            }
-        } else {
-            $this->position = $position;
-        }
+        $this->position = $position;
+        return $this;
+    }
 
+    public function getCourse(): ?Course
+    {
+        return $this->course;
+    }
+
+    public function setCourse(?Course $course): self
+    {
+        $this->course = $course;
         return $this;
     }
 
@@ -115,9 +87,30 @@ class Chapter
         return $this->videoUrl;
     }
 
-    public function setVideoUrl(?string $videoUrl): static
+    public function setVideoUrl(?string $videoUrl): self
     {
         $this->videoUrl = $videoUrl;
+        return $this;
+    }
+
+    public function getQuiz(): ?Quiz
+    {
+        return $this->quiz;
+    }
+
+    public function setQuiz(?Quiz $quiz): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($quiz === null && $this->quiz !== null) {
+            $this->quiz->setChapter(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($quiz !== null && $quiz->getChapter() !== $this) {
+            $quiz->setChapter($this);
+        }
+
+        $this->quiz = $quiz;
         return $this;
     }
 }

@@ -8,40 +8,41 @@ use Doctrine\Persistence\ObjectManager;
 
 class CategoryFixtures extends Fixture
 {
-    private string $projectDir;
-
-    public function __construct(string $projectDir)
+    public function __construct(private string $projectDir)
     {
-        $this->projectDir = $projectDir;
     }
 
     public function load(ObjectManager $manager): void
     {
         $categories = [
-            'Développement Web' => [
-                'Symfony', 'React', 'Vue.js', 'Laravel', 'Node.js'
+            [
+                'name' => 'Développement Web',
+                'ref' => 'category_dev_web'
             ],
-            'Design' => [
-                'UI/UX', 'Figma', 'Adobe XD', 'Photoshop'
+            [
+                'name' => 'Design',
+                'ref' => 'category_design'
             ],
-            'Marketing Digital' => [
-                'SEO', 'Réseaux Sociaux', 'Google Ads', 'Content Marketing'
+            [
+                'name' => 'Cybersécurité',
+                'ref' => 'category_security'
             ],
-            'Data Science' => [
-                'Python', 'Machine Learning', 'Deep Learning', 'Big Data'
+            [
+                'name' => 'Data Science',
+                'ref' => 'category_data'
             ],
-            'DevOps' => [
-                'Docker', 'Kubernetes', 'CI/CD', 'AWS', 'Azure'
+            [
+                'name' => 'DevOps',
+                'ref' => 'category_devops'
             ]
         ];
 
-        foreach ($categories as $mainCategory => $subCategories) {
+        foreach ($categories as $categoryData) {
             $category = new Categorie();
-            $category->setName($mainCategory);
-            $manager->persist($category);
+            $category->setName($categoryData['name']);
             
-            // On stocke la référence pour CourseFixtures
-            $this->addReference('category_' . strtolower(str_replace(' ', '_', $mainCategory)), $category);
+            $manager->persist($category);
+            $this->addReference($categoryData['ref'], $category);
         }
 
         $manager->flush();

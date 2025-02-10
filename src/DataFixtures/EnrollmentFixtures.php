@@ -25,19 +25,32 @@ class EnrollmentFixtures extends Fixture implements DependentFixtureInterface
         $students = $manager->getRepository(Student::class)->findAll();
         $courses = $manager->getRepository(Course::class)->findAll();
 
-        foreach ($students as $student) {
-            // Chaque étudiant s'inscrit à 2-4 cours aléatoires
-            $randomCourses = $faker->randomElements($courses, $faker->numberBetween(2, 4));
-            
-            foreach ($randomCourses as $course) {
-                // Créer l'inscription
-                $enrollment = new Enrollment();
-                $enrollment->setStudent($student)
-                    ->setCourse($course)
-                    ->setEnrolledAt(new \DateTimeImmutable());
-                
-                $manager->persist($enrollment);
-            }
+        $enrollmentData = [
+            [
+                'student_ref' => 'student_1',
+                'course_ref' => 'course_1',
+                'completed_chapters' => ['chapter_1_1', 'chapter_1_2'],
+                'ref' => 'enrollment_1_1'
+            ],
+            [
+                'student_ref' => 'student_2',
+                'course_ref' => 'course_2',
+                'completed_chapters' => ['chapter_2_1'],
+                'ref' => 'enrollment_2_1'
+            ],
+            // ... autres inscriptions avec leurs refs
+        ];
+
+        foreach ($enrollmentData as $data) {
+            $enrollment = new Enrollment();
+            $enrollment->setStudent($this->getReference($data['student_ref'], Student::class))
+                ->setCourse($this->getReference($data['course_ref'], Course::class))
+                ->setCompletedChapters($data['completed_chapters'])
+                ->setProgressPercentage(0)
+                ->setEnrolledAt(new \DateTimeImmutable());
+
+            $manager->persist($enrollment);
+            $this->addReference($data['ref'], $enrollment);
         }
 
         $manager->flush();
@@ -46,8 +59,9 @@ class EnrollmentFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
-            StudentFixtures::class,
+            UserFixtures::class,
             CourseFixtures::class,
+            ChapterFixtures::class
         ];
     }
 } 

@@ -19,7 +19,7 @@ class Quiz
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column]
@@ -27,12 +27,6 @@ class Quiz
 
     #[ORM\Column]
     private ?int $minimumScore = null;
-
-    #[ORM\Column]
-    private ?bool $isPublished = false;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'quizzes')]
     #[ORM\JoinColumn(nullable: false)]
@@ -44,11 +38,13 @@ class Quiz
     #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: Question::class, orphanRemoval: true)]
     private Collection $questions;
 
+    #[ORM\OneToOne(inversedBy: 'quiz', targetEntity: Chapter::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Chapter $chapter = null;
+
     public function __construct()
     {
         $this->questions = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->isPublished = false;
     }
 
     public function getId(): ?int
@@ -72,7 +68,7 @@ class Quiz
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
         return $this;
@@ -97,28 +93,6 @@ class Quiz
     public function setMinimumScore(int $minimumScore): self
     {
         $this->minimumScore = $minimumScore;
-        return $this;
-    }
-
-    public function isIsPublished(): ?bool
-    {
-        return $this->isPublished;
-    }
-
-    public function setIsPublished(bool $isPublished): self
-    {
-        $this->isPublished = $isPublished;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
         return $this;
     }
 
@@ -160,6 +134,17 @@ class Quiz
             }
         }
 
+        return $this;
+    }
+
+    public function getChapter(): ?Chapter
+    {
+        return $this->chapter;
+    }
+
+    public function setChapter(?Chapter $chapter): self
+    {
+        $this->chapter = $chapter;
         return $this;
     }
 }

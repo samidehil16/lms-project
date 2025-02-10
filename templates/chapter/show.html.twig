@@ -1,0 +1,140 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ chapter.title }} - {{ course.title }}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Barre de progression -->
+        <div class="mb-8 bg-white shadow sm:rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">Progression du cours</h3>
+                <div class="mt-2">
+                    <div class="relative pt-1">
+                        <div class="flex mb-2 items-center justify-between">
+                            <div>
+                                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
+                                    Progression
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-semibold inline-block text-indigo-600">
+                                    {{ enrollment.progressPercentage }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
+                            <div style="width:{{ enrollment.progressPercentage }}%" 
+                                 class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenu du chapitre -->
+        <div class="bg-white shadow sm:rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:p-6">
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ chapter.title }}</h1>
+                
+                {% if chapter.videoUrl %}
+                    <div class="aspect-w-16 aspect-h-9 mb-6">
+                        <iframe src="{{ chapter.videoUrl }}" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen
+                                class="rounded-lg shadow-lg">
+                        </iframe>
+                    </div>
+                {% endif %}
+
+                <div class="prose max-w-none">
+                    {{ chapter.description|raw }}
+                </div>
+
+                {% if chapter.id not in enrollment.completedChapters %}
+                    <div class="mt-6">
+                        <form action="{{ path('app_chapter_complete', {'course_id': course.id, 'id': chapter.id}) }}" 
+                              method="POST" 
+                              class="complete-chapter-form">
+                            <button type="submit" 
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Marquer comme terminé
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+
+                {% if chapter.quiz %}
+                    <div class="mt-6">
+                        <h3 class="text-lg font-medium text-gray-900">Quiz du chapitre</h3>
+                        <div class="mt-2">
+                            <a href="{{ path('app_quiz_start', {
+                                'course_id': course.id,
+                                'chapter_id': chapter.id,
+                                'id': chapter.quiz.id
+                            }) }}" 
+                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                                Commencer le quiz
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Navigation entre les chapitres -->
+        <div class="mt-8 flex justify-between">
+            {% if previousChapter %}
+                <a href="{{ path('app_chapter_show', {'course_id': course.id, 'id': previousChapter.id}) }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Chapitre précédent
+                </a>
+            {% else %}
+                <div></div>
+            {% endif %}
+
+            {% if nextChapter %}
+                <a href="{{ path('app_chapter_show', {'course_id': course.id, 'id': nextChapter.id}) }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Chapitre suivant
+                    <svg class="ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+            {% else %}
+                <div></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+<script>
+document.querySelectorAll('.complete-chapter-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                // Recharger la page pour mettre à jour l'interface
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

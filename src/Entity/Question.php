@@ -17,6 +17,18 @@ class Question
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
+    #[ORM\Column(type: Types::JSON)]
+    private array $choices = [];
+
+    #[ORM\Column]
+    private ?int $correctAnswer = null;
+
+    #[ORM\Column(nullable: false)]
+    private ?int $position = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $type = null;
+
     #[ORM\Column]
     private ?int $points = null;
 
@@ -24,14 +36,10 @@ class Question
     #[ORM\JoinColumn(nullable: false)]
     private ?Quiz $quiz = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $type = null;
-
-    #[ORM\Column(type: 'json')]
-    private array $choices = [];
-
-    #[ORM\Column]
-    private ?int $correctAnswer = null;
+    public function __construct()
+    {
+        $this->position = 0; // Valeur par défaut
+    }
 
     public function getId(): ?int
     {
@@ -43,46 +51,9 @@ class Question
         return $this->content;
     }
 
-    public function setContent(string $content): static
+    public function setContent(string $content): self
     {
         $this->content = $content;
-
-        return $this;
-    }
-
-    public function getPoints(): ?int
-    {
-        return $this->points;
-    }
-
-    public function setPoints(int $points): static
-    {
-        $this->points = $points;
-
-        return $this;
-    }
-
-    public function getQuiz(): ?Quiz
-    {
-        return $this->quiz;
-    }
-
-    public function setQuiz(?Quiz $quiz): static
-    {
-        $this->quiz = $quiz;
-
-        return $this;
-    }
-
-    public function getType(): ?string
-    {
-        return $this->type;
-    }
-
-    public function setType(string $type): static
-    {
-        $this->type = $type;
-
         return $this;
     }
 
@@ -91,10 +62,9 @@ class Question
         return $this->choices;
     }
 
-    public function setChoices(array $choices): static
+    public function setChoices(array $choices): self
     {
         $this->choices = $choices;
-
         return $this;
     }
 
@@ -103,10 +73,53 @@ class Question
         return $this->correctAnswer;
     }
 
-    public function setCorrectAnswer(int $correctAnswer): static
+    public function setCorrectAnswer(int $correctAnswer): self
     {
         $this->correctAnswer = $correctAnswer;
+        return $this;
+    }
 
+    public function getPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): self
+    {
+        $this->position = $position;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getPoints(): ?int
+    {
+        return $this->points;
+    }
+
+    public function setPoints(int $points): self
+    {
+        $this->points = $points;
+        return $this;
+    }
+
+    public function getQuiz(): ?Quiz
+    {
+        return $this->quiz;
+    }
+
+    public function setQuiz(?Quiz $quiz): self
+    {
+        $this->quiz = $quiz;
         return $this;
     }
 }

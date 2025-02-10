@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Review;
+use App\Entity\Course;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -110,6 +111,30 @@ class ReviewRepository extends ServiceEntityRepository
 
         if ($flush) {
             $this->getEntityManager()->flush();
+        }
+    }
+
+    public function calculateAverageRating(Course $course): array
+    {
+        try {
+            $result = $this->createQueryBuilder('r')
+                ->select('COUNT(r.id) as reviewCount, ROUND(AVG(r.rating), 2) as averageRating')
+                ->where('r.course = :course')
+                ->andWhere('r.isApproved = :approved')
+                ->setParameter('course', $course)
+                ->setParameter('approved', true)
+                ->getQuery()
+                ->getSingleResult();
+
+            return [
+                'reviewCount' => (int)($result['reviewCount'] ?? 0),
+                'averageRating' => $result['averageRating'] ? (float)$result['averageRating'] : null
+            ];
+        } catch (\Exception $e) {
+            return [
+                'reviewCount' => 0,
+                'averageRating' => null
+            ];
         }
     }
 } 

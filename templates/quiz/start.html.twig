@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Quiz - {{ quiz.title }}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête du quiz -->
+        <div class="mb-8 bg-white shadow sm:rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:p-6">
+                <h1 class="text-2xl font-bold text-gray-900">{{ quiz.title }}</h1>
+                <p class="mt-2 text-gray-600">{{ quiz.description }}</p>
+                <div class="mt-4 flex items-center text-sm text-gray-500">
+                    <svg class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    Durée : {{ quiz.duration }} minutes
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions du quiz -->
+        <div class="bg-white shadow sm:rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:p-6">
+                <form id="quiz-form" class="space-y-8">
+                    {% for question in questions %}
+                        <div class="quiz-question" data-question-id="{{ question.id }}">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">
+                                Question {{ loop.index }} : {{ question.content }}
+                            </h3>
+                            
+                            <div class="mt-4 space-y-4">
+                                {% for choice in question.choices %}
+                                    <div class="flex items-center">
+                                        <input type="radio" 
+                                               id="q{{ question.id }}_{{ loop.index0 }}" 
+                                               name="answer_{{ question.id }}" 
+                                               value="{{ loop.index0 }}"
+                                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                        <label for="q{{ question.id }}_{{ loop.index0 }}" 
+                                               class="ml-3 block text-sm font-medium text-gray-700">
+                                            {{ choice }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" 
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Soumettre le quiz
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal des résultats (caché par défaut) -->
+        <div id="results-modal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-8 max-w-lg w-full mx-4">
+                <div id="quiz-results" class="text-center">
+                    <!-- Les résultats seront injectés ici via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const answers = {};
+    document.querySelectorAll('.quiz-question').forEach(question => {
+        const questionId = question.dataset.questionId;
+        const selectedAnswer = question.querySelector('input[name="answer_' + questionId + '"]:checked');
+        if (selectedAnswer) {
+            answers[questionId] = parseInt(selectedAnswer.value);
+        }
+    });
+
+    try {
+        const response = await fetch('{{ path('app_quiz_submit', {
+            'course_id': course.id,
+            'chapter_id': chapter.id,
+            'id': quiz.id
+        }) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(answers)
+        });
+
+        const data = await response.json();
+        
+        // Afficher les résultats
+        const resultsHtml = `
+            <h2 class="text-2xl font-bold mb-4">${data.passed ? 'Félicitations !' : 'Quiz non validé'}</h2>
+            <p class="text-lg mb-4">Votre score : ${data.score.toFixed(1)}%</p>
+            <p class="mb-4">Vous avez obtenu ${data.correctAnswers} bonnes réponses sur ${data.totalQuestions} questions.</p>
+            ${data.passed ? '<p class="text-green-600">Vous avez réussi le quiz !</p>' : '<p class="text-red-600">Vous n\'avez pas atteint le score minimum requis.</p>'}
+            <button onclick="window.location.href='{{ path('app_chapter_show', {'course_id': course.id, 'id': chapter.id}) }}'"
+                    class="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Retourner au chapitre
+            </button>
+        `;
+
+        document.getElementById('quiz-results').innerHTML = resultsHtml;
+        document.getElementById('results-modal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Erreur:', error);
+    }
+});
+
+// Fermer le modal en cliquant en dehors
+document.getElementById('results-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+        e.target.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %} 

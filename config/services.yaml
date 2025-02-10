@@ -28,3 +28,16 @@ services:
         tags: ['doctrine.fixture.orm']
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Controller\PaymentController:
+        arguments:
+            $stripeSecretKey: '%env(STRIPE_SECRET_KEY)%'
+            $stripePublicKey: '%env(STRIPE_PUBLIC_KEY)%'
+
+    App\DataFixtures\QuizFixtures:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\DataFixtures\ReviewFixtures:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

@@ -10,40 +10,72 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: StudentRepository::class)]
 class Student extends User
 {
-    
-    #[ORM\Column]
-    
-    private array $progress = [];
-
-    /**
-     * @var Collection<int, Payment>
-     */
-    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'student')]
-    private Collection $payments;
-
     /**
      * @var Collection<int, Enrollment>
      */
     #[ORM\OneToMany(mappedBy: 'student', targetEntity: Enrollment::class)]
     private Collection $enrollments;
 
+    #[ORM\OneToMany(mappedBy: 'student', targetEntity: Payment::class)]
+    private Collection $payments;
+
     public function __construct()
     {
         parent::__construct();
-        $this->payments = new ArrayCollection();
         $this->enrollments = new ArrayCollection();
+        $this->payments = new ArrayCollection();
     }
 
-    public function getProgress(): array
+    /**
+     * @return Collection<int, Enrollment>
+     */
+    public function getEnrollments(): Collection
     {
-        return $this->progress;
+        return $this->enrollments;
     }
 
-    public function setProgress(array $progress): static
+    public function addEnrollment(Enrollment $enrollment): self
     {
-        $this->progress = $progress;
+        if (!$this->enrollments->contains($enrollment)) {
+            $this->enrollments->add($enrollment);
+            $enrollment->setStudent($this);
+        }
 
         return $this;
+    }
+
+    public function removeEnrollment(Enrollment $enrollment): self
+    {
+        if ($this->enrollments->removeElement($enrollment)) {
+            // set the owning side to null (unless already changed)
+            if ($enrollment->getStudent() === $this) {
+                $enrollment->setStudent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Course>
+     */
+    public function getEnrolledCourses(): Collection
+    {
+        $courses = new ArrayCollection();
+        foreach ($this->enrollments as $enrollment) {
+            $courses->add($enrollment->getCourse());
+        }
+        return $courses;
+    }
+
+    public function isEnrolledInCourse(Course $course): bool
+    {
+        foreach ($this->enrollments as $enrollment) {
+            if ($enrollment->getCourse() === $course) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -67,39 +99,8 @@ class Student extends User
     public function removePayment(Payment $payment): static
     {
         if ($this->payments->removeElement($payment)) {
-            // set the owning side to null (unless already changed)
             if ($payment->getStudent() === $this) {
                 $payment->setStudent(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Enrollment>
-     */
-    public function getEnrollments(): Collection
-    {
-        return $this->enrollments;
-    }
-
-    public function addEnrollment(Enrollment $enrollment): static
-    {
-        if (!$this->enrollments->contains($enrollment)) {
-            $this->enrollments->add($enrollment);
-            $enrollment->setStudent($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEnrollment(Enrollment $enrollment): static
-    {
-        if ($this->enrollments->removeElement($enrollment)) {
-            // set the owning side to null (unless already changed)
-            if ($enrollment->getStudent() === $this) {
-                $enrollment->setStudent(null);
             }
         }
 

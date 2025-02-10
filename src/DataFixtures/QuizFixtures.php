@@ -3,100 +3,110 @@
 namespace App\DataFixtures;
 
 use App\Entity\Quiz;
-use App\Entity\Course;
+use App\Entity\Question;
+use App\Entity\Chapter;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Faker\Factory;
+use Doctrine\Persistence\ObjectManager;
 
 class QuizFixtures extends Fixture implements DependentFixtureInterface
 {
-    private string $projectDir;
-
-    public function __construct(string $projectDir)
+    public function __construct(private string $projectDir)
     {
-        $this->projectDir = $projectDir;
+        // Le constructeur avec $projectDir injecté par Symfony
     }
 
     public function load(ObjectManager $manager): void
     {
-        $faker = Factory::create('fr_FR');
-        $courses = $manager->getRepository(Course::class)->findAll();
-
-        if (empty($courses)) {
-            return;
-        }
-
-        $quizTypes = [
-            'evaluation' => [
-                'title' => [
-                    'Évaluation finale : %s',
-                    'Test de connaissances : %s',
-                    'Quiz de validation : %s'
-                ],
-                'description' => [
-                    'Évaluez vos connaissances sur %s. Ce quiz final couvre tous les aspects importants du cours.',
-                    'Testez votre compréhension de %s. Cette évaluation vous permettra de valider vos acquis.',
-                    'Vérifiez votre maîtrise de %s à travers ce quiz complet.'
+        $quizData = [
+            'chapter_1_1' => [
+                'title' => 'Quiz - Introduction au développement web',
+                'description' => 'Testez vos connaissances sur les fondamentaux du web',
+                'duration' => 30,
+                'minimum_score' => 70,
+                'ref' => 'quiz_1_1',
+                'questions' => [
+                    [
+                        'content' => 'Quel protocole est utilisé pour le web ?',
+                        'choices' => ['HTTP', 'FTP', 'SMTP'],
+                        'correct_answer' => 0,
+                        'points' => 1,
+                        'type' => 'multiple_choice',
+                        'ref' => 'question_1_1_1'
+                    ],
+                    [
+                        'content' => 'Quelle balise HTML est utilisée pour les titres principaux ?',
+                        'choices' => ['h1', 'p', 'div'],
+                        'correct_answer' => 0,
+                        'points' => 1,
+                        'type' => 'multiple_choice',
+                        'ref' => 'question_1_1_2'
+                    ],
+                    [
+                        'content' => 'CSS est utilisé pour :',
+                        'choices' => ['Le style', 'La logique', 'Les données'],
+                        'correct_answer' => 0,
+                        'points' => 1,
+                        'type' => 'multiple_choice',
+                        'ref' => 'question_1_1_3'
+                    ]
                 ]
             ],
-            'practice' => [
-                'title' => [
-                    'Exercices pratiques : %s',
-                    'Quiz d\'entraînement : %s',
-                    'Pratique guidée : %s'
-                ],
-                'description' => [
-                    'Pratiquez vos compétences en %s avec ces exercices interactifs.',
-                    'Renforcez votre apprentissage de %s grâce à ce quiz d\'entraînement.',
-                    'Mettez en pratique vos connaissances sur %s.'
-                ]
-            ],
-            'chapter' => [
-                'title' => [
-                    'Quiz du chapitre : %s',
-                    'Révision : %s',
-                    'Mini-évaluation : %s'
-                ],
-                'description' => [
-                    'Validez votre compréhension du chapitre sur %s.',
-                    'Révisez les concepts clés de %s avec ce quiz rapide.',
-                    'Vérifiez vos connaissances sur %s avant de continuer.'
+            'chapter_1_2' => [
+                'title' => 'Quiz - HTML et Structure',
+                'description' => 'Vérifiez votre compréhension de HTML',
+                'duration' => 20,
+                'minimum_score' => 60,
+                'ref' => 'quiz_1_2',
+                'questions' => [
+                    [
+                        'content' => 'Quelle balise crée un lien hypertexte ?',
+                        'choices' => ['a', 'link', 'href'],
+                        'correct_answer' => 0,
+                        'points' => 1,
+                        'type' => 'multiple_choice',
+                        'ref' => 'question_1_2_1'
+                    ],
+                    [
+                        'content' => 'Comment définir un paragraphe en HTML ?',
+                        'choices' => ['p', 'para', 'text'],
+                        'correct_answer' => 0,
+                        'points' => 1,
+                        'type' => 'multiple_choice',
+                        'ref' => 'question_1_2_2'
+                    ]
                 ]
             ]
         ];
 
-        foreach ($courses as $course) {
-            // 2 à 4 quiz par cours
-            $numQuizzes = $faker->numberBetween(2, 4);
+        foreach ($quizData as $chapterRef => $quiz) {
+            $quizEntity = new Quiz();
+            $chapter = $this->getReference($chapterRef, Chapter::class);
+            $course = $chapter->getCourse();
             
-            for ($i = 0; $i < $numQuizzes; $i++) {
-                $quiz = new Quiz();
-                
-                // Choisir un type de quiz
-                $type = $faker->randomElement(array_keys($quizTypes));
-                $titleTemplate = $faker->randomElement($quizTypes[$type]['title']);
-                $descTemplate = $faker->randomElement($quizTypes[$type]['description']);
-                
-                // Générer un sujet spécifique pour ce quiz
-                $subject = $faker->randomElement([
-                    'les fondamentaux',
-                    'les concepts avancés',
-                    'la mise en pratique',
-                    'l\'optimisation',
-                    'les bonnes pratiques'
-                ]);
+            $quizEntity->setTitle($quiz['title'])
+                ->setDescription($quiz['description'])
+                ->setDuration($quiz['duration'])
+                ->setMinimumScore($quiz['minimum_score'])
+                ->setChapter($chapter)
+                ->setCourse($course);
+            
+            $this->addReference($quiz['ref'], $quizEntity);
 
-                $quiz->setTitle(sprintf($titleTemplate, $subject))
-                    ->setDescription(sprintf($descTemplate, $subject))
-                    ->setCourse($course)
-                    ->setDuration($faker->randomElement([15, 20, 30, 45, 60])) // durée en minutes
-                    ->setMinimumScore($faker->randomElement([60, 70, 80])) // score minimum en pourcentage
-                    ->setCreatedAt(new \DateTimeImmutable($faker->dateTimeBetween('-6 months')->format('Y-m-d H:i:s')))
-                    ->setIsPublished($faker->boolean(80)); // 80% de chances d'être publié
-
-                $manager->persist($quiz);
+            foreach ($quiz['questions'] as $questionData) {
+                $question = new Question();
+                $question->setContent($questionData['content'])
+                    ->setChoices($questionData['choices'])
+                    ->setCorrectAnswer($questionData['correct_answer'])
+                    ->setPoints($questionData['points'])
+                    ->setType($questionData['type'])
+                    ->setQuiz($quizEntity);
+                
+                $manager->persist($question);
+                $this->addReference($questionData['ref'], $question);
             }
+            
+            $manager->persist($quizEntity);
         }
 
         $manager->flush();
@@ -105,7 +115,7 @@ class QuizFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
-            CourseFixtures::class,
+            ChapterFixtures::class,
         ];
     }
 }

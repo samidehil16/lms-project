@@ -12,11 +12,8 @@ use Faker\Factory;
 
 class PaymentFixtures extends Fixture implements DependentFixtureInterface
 {
-    private string $projectDir;
-
-    public function __construct(string $projectDir)
+    public function __construct(private string $projectDir)
     {
-        $this->projectDir = $projectDir;
     }
 
     public function load(ObjectManager $manager): void
@@ -37,8 +34,8 @@ class PaymentFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         foreach ($students as $student) {
-            // Chaque étudiant achète entre 1 et 4 cours
-            $numCourses = $faker->numberBetween(1, 4);
+            // Chaque étudiant achète entre 1 et 3 cours
+            $numCourses = $faker->numberBetween(1, 3);
             $selectedCourses = $faker->randomElements($courses, $numCourses);
             
             foreach ($selectedCourses as $course) {

@@ -25,10 +25,10 @@ class Payment
     private ?float $price = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $paymentMethod = null;
+    private ?string $status = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    private ?string $paymentMethod = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -39,8 +39,8 @@ class Payment
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $transactionId = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $paymentDetails = null;
+    #[ORM\Column(nullable: true)]
+    private array $paymentDetails = [];
 
     public function __construct()
     {
@@ -57,9 +57,10 @@ class Payment
         return $this->student;
     }
 
-    public function setStudent(?Student $student): self
+    public function setStudent(?Student $student): static
     {
         $this->student = $student;
+
         return $this;
     }
 
@@ -85,17 +86,6 @@ class Payment
         return $this;
     }
 
-    public function getPaymentMethod(): ?string
-    {
-        return $this->paymentMethod;
-    }
-
-    public function setPaymentMethod(string $paymentMethod): self
-    {
-        $this->paymentMethod = $paymentMethod;
-        return $this;
-    }
-
     public function getStatus(): ?string
     {
         return $this->status;
@@ -104,6 +94,17 @@ class Payment
     public function setStatus(string $status): self
     {
         $this->status = $status;
+        return $this;
+    }
+
+    public function getPaymentMethod(): ?string
+    {
+        return $this->paymentMethod;
+    }
+
+    public function setPaymentMethod(string $paymentMethod): self
+    {
+        $this->paymentMethod = $paymentMethod;
         return $this;
     }
 
@@ -140,12 +141,12 @@ class Payment
         return $this;
     }
 
-    public function getPaymentDetails(): ?array
+    public function getPaymentDetails(): array
     {
         return $this->paymentDetails;
     }
 
-    public function setPaymentDetails(?array $paymentDetails): self
+    public function setPaymentDetails(array $paymentDetails): self
     {
         $this->paymentDetails = $paymentDetails;
         return $this;

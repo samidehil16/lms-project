@@ -46,7 +46,7 @@ class Course
     /**
      * @var Collection<int, Payment>
      */
-    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'course')]
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Payment::class)]
     private Collection $payments;
 
     /**
@@ -58,9 +58,15 @@ class Course
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    /**
+     * @var Collection<int, Enrollment>
+     */
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Enrollment::class)]
     private Collection $enrollments;
 
+    /**
+     * @var Collection<int, Review>
+     */
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Review::class)]
     private Collection $reviews;
 
@@ -82,6 +88,12 @@ class Course
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $duration = null;
 
+    #[ORM\Column(type: Types::DECIMAL, precision: 3, scale: 2, nullable: true)]
+    private ?string $averageRating = null;
+
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $reviewsCount = 0;
+
     public function __construct()
     {
         $this->chapters = new ArrayCollection();
@@ -91,6 +103,8 @@ class Course
         $this->enrollments = new ArrayCollection();
         $this->reviews = new ArrayCollection();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->reviewsCount = 0;
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -183,7 +197,7 @@ class Course
         return $this->quizzes;
     }
 
-    public function addQuiz(Quiz $quiz): static
+    public function addQuiz(Quiz $quiz): self
     {
         if (!$this->quizzes->contains($quiz)) {
             $this->quizzes->add($quiz);
@@ -193,7 +207,7 @@ class Course
         return $this;
     }
 
-    public function removeQuiz(Quiz $quiz): static
+    public function removeQuiz(Quiz $quiz): self
     {
         if ($this->quizzes->removeElement($quiz)) {
             // set the owning side to null (unless already changed)
@@ -311,7 +325,7 @@ class Course
         return $this->reviews;
     }
 
-    public function addReview(Review $review): static
+    public function addReview(Review $review): self
     {
         if (!$this->reviews->contains($review)) {
             $this->reviews->add($review);
@@ -321,9 +335,10 @@ class Course
         return $this;
     }
 
-    public function removeReview(Review $review): static
+    public function removeReview(Review $review): self
     {
         if ($this->reviews->removeElement($review)) {
+            // set the owning side to null (unless already changed)
             if ($review->getCourse() === $this) {
                 $review->setCourse(null);
             }
@@ -332,18 +347,26 @@ class Course
         return $this;
     }
 
-    public function getAverageRating(): ?float
+    public function getAverageRating(): ?string
     {
-        if ($this->reviews->isEmpty()) {
-            return null;
-        }
+        return $this->averageRating;
+    }
 
-        $total = 0;
-        foreach ($this->reviews as $review) {
-            $total += $review->getRating();
-        }
+    public function setAverageRating(?string $averageRating): self
+    {
+        $this->averageRating = $averageRating;
+        return $this;
+    }
 
-        return $total / $this->reviews->count();
+    public function getReviewsCount(): int
+    {
+        return $this->reviewsCount;
+    }
+
+    public function setReviewsCount(int $reviewsCount): self
+    {
+        $this->reviewsCount = $reviewsCount;
+        return $this;
     }
 
     public function getThumbnail(): ?string
@@ -414,5 +437,23 @@ class Course
     {
         $this->duration = $duration;
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Student>
+     */
+    public function getStudents(): Collection
+    {
+        return $this->enrollments->map(fn(Enrollment $enrollment) => $enrollment->getStudent());
+    }
+
+    public function hasStudent(Student $student): bool
+    {
+        foreach ($this->enrollments as $enrollment) {
+            if ($enrollment->getStudent() === $student) {
+                return true;
+            }
+        }
+        return false;
     }
 }

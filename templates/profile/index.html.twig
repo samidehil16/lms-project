@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Mon Profil</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Informations personnelles et détails du compte</p>
+                </div>
+                <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    Modifier
+                </a>
+            </div>
+            
+            <div class="border-t border-gray-200">
+                <div class="flex px-4 py-5 sm:px-6">
+                    <div class="flex-shrink-0">
+                        {% if user.avatar %}
+                            <img class="h-24 w-24 rounded-full" src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="Photo de profil">
+                        {% else %}
+                            <div class="h-24 w-24 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <span class="text-2xl font-medium text-white">{{ user.firstname|first }}{{ user.lastname|first }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="ml-6">
+                        <h4 class="text-xl font-bold text-gray-900">{{ user.firstname }} {{ user.lastname }}</h4>
+                        <p class="text-gray-500">{{ user.email }}</p>
+                        <div class="mt-2">
+                            {% if is_granted('ROLE_STUDENT') %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Étudiant
+                                </span>
+                            {% endif %}
+                            {% if is_granted('ROLE_INSTRUCTOR') %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Formateur
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if is_granted('ROLE_STUDENT') %}
+                <div class="border-t border-gray-200">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h4 class="text-lg font-medium text-gray-900">Mes cours</h4>
+                        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {% for enrollment in user.enrollments %}
+                                <div class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400">
+                                    <div class="flex-1 min-w-0">
+                                        <a href="{{ path('app_course_show', {'id': enrollment.course.id}) }}" class="focus:outline-none">
+                                            <p class="text-sm font-medium text-gray-900">{{ enrollment.course.title }}</p>
+                                            <p class="text-sm text-gray-500 truncate">Inscrit le {{ enrollment.enrolledAt|date('d/m/Y') }}</p>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-gray-500">Vous n'êtes inscrit à aucun cours pour le moment.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if is_granted('ROLE_INSTRUCTOR') %}
+                <div class="border-t border-gray-200">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h4 class="text-lg font-medium text-gray-900">Mes cours enseignés</h4>
+                        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {% for course in user.courses %}
+                                <div class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400">
+                                    <div class="flex-1 min-w-0">
+                                        <a href="{{ path('app_course_show', {'id': course.id}) }}" class="focus:outline-none">
+                                            <p class="text-sm font-medium text-gray-900">{{ course.title }}</p>
+                                            <p class="text-sm text-gray-500 truncate">{{ course.students|length }} étudiants inscrits</p>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-gray-500">Vous n'avez pas encore créé de cours.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
